@@ -1,0 +1,69 @@
+name: 분기 데이터 수동 업데이트 요청
+
+on:
+  schedule:
+    # 매 분기 30일 (1월, 4월, 7월, 10월 1일) 09:00 KST (00:00 UTC)
+    - cron: '0 0 30 1,4,7,10 *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  create-data-update-issue:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Get current quarter
+        id: quarter
+        run: |
+          MONTH=$(date +%-m)
+          YEAR=$(date +%Y)
+
+          if [ $MONTH -ge 1 ] && [ $MONTH -le 3 ]; then
+            QUARTER="Q1"
+            QUARTER_NAME="1분기"
+          elif [ $MONTH -ge 4 ] && [ $MONTH -le 6 ]; then
+            QUARTER="Q2"
+            QUARTER_NAME="2분기"
+          elif [ $MONTH -ge 7 ] && [ $MONTH -le 9 ]; then
+            QUARTER="Q3"
+            QUARTER_NAME="3분기"
+          else
+            QUARTER="Q4"
+            QUARTER_NAME="4분기"
+          fi
+
+          echo "quarter=$QUARTER" >> $GITHUB_OUTPUT
+          echo "quarter_name=$QUARTER_NAME" >> $GITHUB_OUTPUT
+          echo "year=$YEAR" >> $GITHUB_OUTPUT
+
+      - name: Create quarterly issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const quarter = '${{ steps.quarter.outputs.quarter }}';
+            const quarterName = '${{ steps.quarter.outputs.quarter_name }}';
+            const year = '${{ steps.quarter.outputs.year }}';
+
+            const issueBody = `## ${year}년 ${quarterName} 데이터 수동 업데이트
+
+            ### 한국은행 RP 잔액
+            - 정확한 잔액을 알 수는 없음.
+            - 뉴스 기사 참고
+
+            ### 외국인 국채 보유 비중
+            - 한국은행 블로그: https://www.bok.or.kr → 뉴스/자료 → 블로그
+            - 뉴스 기사 참고
+
+            ---
+            *이 이슈는 자동으로 생성되었습니다.*`;
+
+            await github.rest.issues.create({
+              owner: 'ParkIlHoon',
+              repo: 'oci-k3s',
+              title: `[${quarter}] ${year}년 ${quarterName} 데이터 수동 업데이트`,
+              body: issueBody,
+              labels: ['quarterly', 'planning', quarter.toLowerCase()]
+            });
