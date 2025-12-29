@@ -7,7 +7,6 @@ WORKDIR /app
 COPY gradle ./gradle
 COPY gradlew ./
 COPY gradlew.bat ./
-COPY gradle.properties ./
 COPY settings.gradle.kts ./
 COPY build.gradle.kts ./
 
