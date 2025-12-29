@@ -18,7 +18,7 @@ COPY src ./src
 RUN ./gradlew build --no-daemon -x test
 
 # Runtime stage
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre-ubi10-minimal
 
 WORKDIR /app
 
