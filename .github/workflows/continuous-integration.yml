@@ -71,7 +71,7 @@ jobs:
         with:
           repository: ParkIlHoon/oci-k3s
           token: ${{ secrets.GH_PAT }}
-          ref: main
+          ref: master
 
       - name: Update Backend Deployment.yaml
         run: |
